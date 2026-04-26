@@ -8,6 +8,9 @@ import Arena from './pages/Arena';
 import DreamFund from './pages/DreamFund';
 import Settings from './pages/Settings';
 import VibeCheck from './pages/VibeCheck';
+import KnowledgeVault from './pages/KnowledgeVault';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import AdminPanel from './pages/AdminPanel'; 
 
 function App() {
   const location = useLocation(); // Ab ye error nahi dega!
@@ -18,12 +21,14 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/arena" element={<Arena />} />
-        <Route path="/dream" element={<DreamFund />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/vibe-check" element={<VibeCheck />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/arena" element={<ProtectedRoute><Arena /></ProtectedRoute>} />
+        <Route path="/dream" element={<ProtectedRoute><DreamFund /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/vibe-check" element={<ProtectedRoute><VibeCheck /></ProtectedRoute>} />
+        <Route path="/vault" element={<ProtectedRoute><KnowledgeVault /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
       </Routes>
     </AnimatePresence>
   );

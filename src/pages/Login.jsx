@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import { ArrowRight, Eye, EyeOff, Zap, Shield, Activity, Clock, Users } from 'lucide-react';
 import api from '../utils/api';
 import { AuraContext } from '../context/AuraContext';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+
 
 const floatOrb = keyframes`
   0%,100% { transform: translate(0,0) scale(1); }
@@ -286,6 +288,7 @@ const Login = () => {
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
+  // 🔴 1. NORMAL LOGIN (Email/Password wala rasta)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -306,62 +309,39 @@ const Login = () => {
   return (
     <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} transition={{ duration:0.3 }}>
       <Page>
-        {/* Background orbs */}
         <Orb style={{ width:500, height:500, background:'rgba(230,57,70,0.09)', top:'-120px', left:'-80px' }} $dur="11s" $delay="0s"/>
         <Orb style={{ width:360, height:360, background:'rgba(139,92,246,0.07)', bottom:'-80px', left:'40%' }} $dur="14s" $delay="3s"/>
 
-        {/* Left */}
         <Left>
-          <LeftBrand>
-            <BrandIcon><Zap size={18} color="white" strokeWidth={2.5}/></BrandIcon>
-            <BrandWord>AURA</BrandWord>
-          </LeftBrand>
-
-          <Headline>
-            Build Your<RedLine>Discipline.</RedLine>
-          </Headline>
-          <Subhead>
-            The only app that interrupts your doomscrolling with a phone call.
-          </Subhead>
-
+          {/* Tumhara purana Left panel ka code yahan aayega (Brand, Headline, Features) */}
+          <LeftBrand><BrandIcon><Zap size={18} color="white" strokeWidth={2.5}/></BrandIcon><BrandWord>AURA</BrandWord></LeftBrand>
+          <Headline>Build Your<RedLine>Discipline.</RedLine></Headline>
+          <Subhead>The only app that interrupts your doomscrolling with a phone call.</Subhead>
           <Features>
             {FEATURES.map(f => (
               <FeatureRow key={f.title}>
-                <FeatIcon $bg={f.bg} $border={f.border} $color={f.color}>
-                  <f.Icon size={15} strokeWidth={1.5}/>
-                </FeatIcon>
-                <FeatText>
-                  <FeatTitle>{f.title}</FeatTitle>
-                  <FeatDesc>{f.desc}</FeatDesc>
-                </FeatText>
+                <FeatIcon $bg={f.bg} $border={f.border} $color={f.color}><f.Icon size={15} strokeWidth={1.5}/></FeatIcon>
+                <FeatText><FeatTitle>{f.title}</FeatTitle><FeatDesc>{f.desc}</FeatDesc></FeatText>
               </FeatureRow>
             ))}
           </Features>
         </Left>
 
-        {/* Right — Form */}
         <Right>
           <Form>
             <FormTitle>Sign In</FormTitle>
             <FormSub>Enter your credentials to continue.</FormSub>
 
+            {/* 🟢 NORMAL FORM START */}
             <form onSubmit={handleSubmit}>
               <FieldLabel>Email</FieldLabel>
               <FieldWrap>
-                <Input
-                  type="email" name="email"
-                  value={form.email} onChange={handleChange}
-                  placeholder="agent@arena.io" required
-                />
+                <Input type="email" name="email" value={form.email} onChange={handleChange} placeholder="agent@arena.io" required />
               </FieldWrap>
 
               <FieldLabel>Password</FieldLabel>
               <FieldWrap>
-                <Input
-                  type={showPwd ? 'text' : 'password'} name="password"
-                  value={form.password} onChange={handleChange}
-                  placeholder="••••••••" required
-                />
+                <Input type={showPwd ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange} placeholder="••••••••" required />
                 <EyeBtn type="button" onClick={() => setShowPwd(v => !v)}>
                   {showPwd ? <EyeOff size={14}/> : <Eye size={14}/>}
                 </EyeBtn>
@@ -372,8 +352,34 @@ const Login = () => {
                 <ArrowRight size={14} strokeWidth={2.5}/>
               </SubmitBtn>
             </form>
+            {/* 🟢 NORMAL FORM END */}
 
             <Divider><DivText>OR</DivText></Divider>
+
+            {/* 🔵 GOOGLE LOGIN BUTTON */}
+            <GoogleOAuthProvider clientId="TUMHARA_GOOGLE_CLIENT_ID">
+              <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                <GoogleLogin
+                  text="signin_with"
+                  onSuccess={async (credentialResponse) => {
+                    const toastId = toast.loading("Verifying identity...");
+                    try {
+                      const res = await api.post('/auth/google', { token: credentialResponse.credential });
+                      localStorage.setItem('token', res.data.token);
+                      setUser(res.data.user);
+                      toast.success("Access Granted. Welcome back!", { id: toastId });
+                      window.location.href = '/dashboard';
+                    } catch (err) {
+                      toast.error("Authentication failed.", { id: toastId });
+                    }
+                  }}
+                  onError={() => toast.error('Google Login Failed')}
+                  theme="filled_black"
+                  shape="pill"
+                />
+              </div>
+            </GoogleOAuthProvider>
+            
             <FootText>No profile?<Link to="/register">Create one</Link></FootText>
           </Form>
         </Right>

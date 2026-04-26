@@ -6,6 +6,26 @@ export const AuraContext = createContext();
 
 export const AuraProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 🚨 NAYA: THE NOTIFICATION ENGINE (Local Storage based)
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('aura_notifs');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const addNotification = (text, type = 'info') => {
+    setNotifications(prev => {
+      const newNotifs = [{ 
+        id: Date.now(), 
+        text, 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
+        type 
+      }, ...prev].slice(0, 10); // Sirf top 10 notifs save karega
+      localStorage.setItem('aura_notifs', JSON.stringify(newNotifs));
+      return newNotifs;
+    });
+  };
 
   const t = (key) => {
     return getLabel(user?.themePreference || 'minimalist-dark', key);
@@ -15,11 +35,9 @@ export const AuraProvider = ({ children }) => {
     if (user?.themePreference) {
       document.documentElement.setAttribute('data-theme', user.themePreference);
     } else {
-      document.documentElement.setAttribute('data-theme', 'minimalist-dark'); // Fallback
+      document.documentElement.setAttribute('data-theme', 'minimalist-dark');
     }
   }, [user?.themePreference]);
-  
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -29,7 +47,6 @@ export const AuraProvider = ({ children }) => {
           const res = await api.get('/auth/me');
           setUser(res.data.user);
         } catch (error) {
-          console.error('Session expired or invalid token');
           localStorage.removeItem('token');
           setUser(null);
         }
@@ -45,7 +62,8 @@ export const AuraProvider = ({ children }) => {
   };
 
   return (
-    <AuraContext.Provider value={{ user, setUser, loading, logout, t}}>
+    // 🚨 Yahan addNotification aur notifications ko Provider mein pass kiya
+    <AuraContext.Provider value={{ user, setUser, loading, logout, t, notifications, addNotification }}>
       {children}
     </AuraContext.Provider>
   );

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { ArrowRight, Eye, EyeOff, Zap } from 'lucide-react';
 import api from '../utils/api';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const floatOrb = keyframes`
   0%,100% { transform: translate(0,0) scale(1); }
@@ -45,23 +46,23 @@ const Register = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setUser } = useContext(AuraContext); // Context chahiye data set karne ko
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
   const s = getStrength(form.password);
 
+  // 🔴 1. NORMAL REGISTER (Form wala)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     const toastId = toast.loading('Initializing profile...');
     
     try {
-      // YAHAN FIX KIYA HAI: formData ki jagah form hoga
       const res = await api.post('/auth/register', form); 
-      
       localStorage.setItem('token', res.data.token);
+      setUser(res.data.user); // Context update
       toast.success('Profile Initialized! Welcome to Aura.', { id: toastId });
-      window.location.href = '/vibe-check';
-      navigate('/login'); 
+      window.location.href = '/vibe-check'; // Redirect to onboarding
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed!', { id: toastId });
     } finally {
@@ -76,24 +77,17 @@ const Register = () => {
         <Orb style={{ width:340, height:340, background:'rgba(139,92,246,0.07)', bottom:'-80px', left:'-60px' }} $dur="9s" $delay="2s"/>
 
         <Card>
-          <BrandRow>
-            <BrandIcon><Zap size={14} color="white" strokeWidth={2.5}/></BrandIcon>
-            <BrandWord>AURA</BrandWord>
-          </BrandRow>
-
+          <BrandRow><BrandIcon><Zap size={14} color="white" strokeWidth={2.5}/></BrandIcon><BrandWord>AURA</BrandWord></BrandRow>
           <Title>Create Profile</Title>
           <Sub>Join the discipline protocol.</Sub>
 
+          {/* 🟢 NORMAL FORM START */}
           <form onSubmit={handleSubmit}>
             <Label>Display Name</Label>
-            <FieldWrap>
-              <Input name="name" type="text" value={form.name} onChange={handleChange} placeholder="Your agent name" required/>
-            </FieldWrap>
+            <FieldWrap><Input name="name" type="text" value={form.name} onChange={handleChange} placeholder="Your agent name" required/></FieldWrap>
 
             <Label>Email</Label>
-            <FieldWrap>
-              <Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="agent@arena.io" required/>
-            </FieldWrap>
+            <FieldWrap><Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="agent@arena.io" required/></FieldWrap>
 
             <Label>Password</Label>
             <FieldWrap>
@@ -105,9 +99,7 @@ const Register = () => {
 
             {form.password && (
               <>
-                <StrengthRow>
-                  {[0,1,2].map(i => <StrengthBar key={i} $on={i < s.bars} $lv={s.lv}/>)}
-                </StrengthRow>
+                <StrengthRow>{[0,1,2].map(i => <StrengthBar key={i} $on={i < s.bars} $lv={s.lv}/>)}</StrengthRow>
                 <StrengthLabel $lv={s.bars > 0 ? s.lv : ''}>{s.bars === 0 ? '' : s.lv}</StrengthLabel>
               </>
             )}
@@ -117,8 +109,40 @@ const Register = () => {
               <ArrowRight size={13} strokeWidth={2.5}/>
             </SubmitBtn>
           </form>
+          {/* 🟢 NORMAL FORM END */}
 
-          <FootText>Already registered?<Link to="/login">Sign in</Link></FootText>
+          {/* 🔴 DIVIDER CHAHIYE HOGA YAHAN */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
+            <div style={{ flex: 1, height: '0.5px', background: 'var(--b1)' }}></div>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: '0.62rem', color: 'var(--t4)', letterSpacing: '1px' }}>OR</span>
+            <div style={{ flex: 1, height: '0.5px', background: 'var(--b1)' }}></div>
+          </div>
+
+          {/* 🔵 GOOGLE SIGNUP BUTTON */}
+          <GoogleOAuthProvider clientId="TUMHARA_GOOGLE_CLIENT_ID">
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <GoogleLogin
+                text="signup_with"
+                onSuccess={async (credentialResponse) => {
+                  const toastId = toast.loading("Initializing secure profile...");
+                  try {
+                    const res = await api.post('/auth/google', { token: credentialResponse.credential });
+                    localStorage.setItem('token', res.data.token);
+                    setUser(res.data.user);
+                    toast.success("Profile Initialized! Welcome to Aura.", { id: toastId });
+                    window.location.href = '/vibe-check';
+                  } catch (err) {
+                    toast.error("Registration failed.", { id: toastId });
+                  }
+                }}
+                onError={() => toast.error('Google Auth Failed')}
+                theme="filled_black"
+                shape="pill"
+              />
+            </div>
+          </GoogleOAuthProvider>
+
+          <FootText style={{ marginTop: '24px' }}>Already registered?<Link to="/login">Sign in</Link></FootText>
         </Card>
       </Page>
     </motion.div>

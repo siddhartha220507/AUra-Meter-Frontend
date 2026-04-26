@@ -181,3 +181,56 @@ input:-webkit-autofill, input:-webkit-autofill:focus {
   --red: #ef4444;
   --amber: #eab308;
 }
+/* 📱 === GLOBAL MOBILE RESPONSIVENESS === 📱 */
+@media (max-width: 768px) {
+  /* 1. Universal Main Container Fix (Har page ke liye) */
+  main {
+    margin-left: 0 !important;
+    padding: 20px 16px 80px !important; /* 80px bottom space for Bottom Nav */
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 2. Universal Sidebar -> Bottom Nav Conversion */
+  aside {
+    top: auto !important; 
+    bottom: 0 !important; 
+    right: 0 !important; 
+    width: 100% !important; 
+    height: 65px !important;
+    flex-direction: row !important; 
+    border-right: none !important; 
+    border-top: 0.5px solid var(--b1) !important;
+    padding: 0 10px !important; 
+    align-items: center !important; 
+    justify-content: space-between !important;
+    background: rgba(6,6,14,0.95) !important; 
+    backdrop-filter: blur(10px) !important;
+  }
+
+  /* 3. Hide Sidebar Logo on Mobile */
+  aside > div:first-child {
+    display: none !important;
+  }
+
+  /* 4. Fix Navbar items stacking */
+  aside nav {
+    flex-direction: row !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    justify-content: space-evenly !important;
+    width: 100% !important;
+  }
+
+  aside nav a {
+    padding: 10px !important;
+    border-radius: 10px !important;
+    border: none !important;
+    justify-content: center !important;
+  }
+
+  /* 5. Hide text in Bottom Nav, keep only icons */
+  aside nav a span {
+    display: none !important;
+  }
+}

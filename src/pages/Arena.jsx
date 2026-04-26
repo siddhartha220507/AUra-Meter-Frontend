@@ -11,10 +11,22 @@ import { AuraContext } from '../context/AuraContext';
 
 /* ── Layout ──────── */
 const Shell = styled.div` background: var(--bg-void); min-height: 100vh; display: flex; `;
-const Main = styled.main` margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px 48px; min-width: 0; `;
-const LayoutGrid = styled.div` display: grid; grid-template-columns: 1fr 340px; gap: 32px; max-width: 1100px; margin: 0 auto; @media (max-width: 1000px) { grid-template-columns: 1fr; } `;
+
+// 🚨 Mobile fallback padding added
+const Main = styled.main` 
+  margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px 48px; min-width: 0; 
+  @media (max-width: 768px) { padding: 20px 16px 85px; margin-left: 0; }
+`;
+
+const LayoutGrid = styled.div` 
+  display: grid; grid-template-columns: 1fr 340px; gap: 32px; max-width: 1100px; margin: 0 auto; 
+  @media (max-width: 1000px) { grid-template-columns: 1fr; } 
+`;
 const FeedCol = styled.div` display: flex; flex-direction: column; gap: 24px; `;
-const RadarCol = styled.div` display: flex; flex-direction: column; gap: 20px; @media (max-width: 1000px) { display: none; } `;
+const RadarCol = styled.div` 
+  display: flex; flex-direction: column; gap: 20px; 
+  @media (max-width: 1000px) { display: none; } 
+`;
 
 const Topbar = styled.div` display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; animation: fade-up 0.4s var(--ease-expo) both; `;
 const HeaderText = styled.div``;
@@ -22,25 +34,42 @@ const PreTitle = styled.div` font-family: var(--f-mono); font-size: 0.62rem; let
 const Title = styled.h1` font-family: var(--f-brand); font-size: 1.6rem; font-weight: 700; color: var(--t1); letter-spacing: 0.5px; `;
 
 /* ── Composer ──────── */
-const ComposerCard = styled.div` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-card); animation: fade-up 0.5s var(--ease-expo) 0.1s both; position: relative; overflow: hidden; &::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--red), transparent); opacity: 0.8; } `;
-const ComposeRow = styled.div` display: flex; gap: 16px; `;
+const ComposerCard = styled.div` 
+  background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 20px; padding: 20px; 
+  box-shadow: var(--shadow-card); animation: fade-up 0.5s var(--ease-expo) 0.1s both; position: relative; overflow: hidden; 
+  &::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--red), transparent); opacity: 0.8; } 
+  
+  /* 🚨 MOBILE: Padding kam ki taaki type karne ki jagah mile */
+  @media (max-width: 768px) { padding: 16px; border-radius: 16px; }
+`;
+const ComposeRow = styled.div` display: flex; gap: 16px; @media (max-width: 768px) { gap: 12px; } `;
 const Avatar = styled.div` width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--red), var(--violet)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-family: var(--f-brand); font-size: 0.8rem; flex-shrink: 0; `;
-const InputArea = styled.div` flex: 1; `;
+const InputArea = styled.div` flex: 1; min-width: 0; /* 🚨 FIX: Prevents text from pushing screen width */ `;
 const TextArea = styled.textarea` width: 100%; background: transparent; border: none; outline: none; color: var(--t1); font-family: var(--f-ui); font-size: 0.95rem; resize: none; min-height: 40px; margin-top: 8px; &::placeholder { color: var(--t4); } `;
 const ImagePreviewWrap = styled.div` position: relative; margin-top: 12px; display: ${p => p.$show ? 'block' : 'none'}; `;
 const ImagePreview = styled.img` width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; border: 0.5px solid var(--b1); `;
-const ActionRow = styled.div` display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 0.5px solid var(--b1); `;
+
+const ActionRow = styled.div` 
+  display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 0.5px solid var(--b1); 
+`;
 const AddImageBtn = styled.button` background: transparent; border: none; color: var(--t3); display: flex; align-items: center; gap: 8px; font-family: var(--f-ui); font-size: 0.8rem; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: all 0.2s; &:hover { background: rgba(255,255,255,0.05); color: var(--emerald); } `;
 const PostBtn = styled.button` background: var(--red); color: white; border: none; padding: 8px 20px; border-radius: 10px; font-family: var(--f-brand); font-size: 0.75rem; letter-spacing: 1px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px var(--red-glow); &:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--red-glow); background: #d42f3b; } &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; } `;
 
 /* ── Feed Posts ──────── */
-const PostCard = styled(motion.div)` background: var(--bg-surface); border: 0.5px solid var(--b1); border-radius: 20px; padding: 20px; transition: all 0.3s; &:hover { border-color: var(--b2); background: var(--bg-card-raise); box-shadow: 0 8px 30px rgba(0,0,0,0.4); } `;
+const PostCard = styled(motion.div)` 
+  background: var(--bg-surface); border: 0.5px solid var(--b1); border-radius: 20px; padding: 20px; transition: all 0.3s; 
+  &:hover { border-color: var(--b2); background: var(--bg-card-raise); box-shadow: 0 8px 30px rgba(0,0,0,0.4); } 
+  
+  /* 🚨 MOBILE: Reduce padding on posts */
+  @media (max-width: 768px) { padding: 16px; border-radius: 16px; }
+`;
+
 const PostHeader = styled.div` display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; `;
 const PostMeta = styled.div` display: flex; gap: 12px; align-items: center; `;
-const PostName = styled.div` font-size: 0.95rem; font-weight: 700; color: var(--t1); display: flex; align-items: center; gap: 8px; `;
+const PostName = styled.div` font-size: 0.95rem; font-weight: 700; color: var(--t1); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; `;
 const LevelBadge = styled.span` font-family: var(--f-mono); font-size: 0.6rem; color: var(--amber); background: var(--amber-soft); padding: 2px 6px; border-radius: 4px; border: 0.5px solid rgba(245,158,11,0.2); `;
 const DeleteBtn = styled.button` background: none; border: none; color: var(--t4); cursor: pointer; padding: 6px; border-radius: 8px; transition: all 0.2s; &:hover { color: var(--red); background: var(--red-soft); } `;
-const PostContent = styled.div` font-size: 0.9rem; color: var(--t2); line-height: 1.5; margin-bottom: 16px; word-wrap: break-word; `;
+const PostContent = styled.div` font-size: 0.9rem; color: var(--t2); line-height: 1.5; margin-bottom: 16px; word-wrap: break-word; overflow-wrap: break-word; `;
 const PostImage = styled.img` width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; border: 0.5px solid var(--b1); margin-bottom: 16px; `;
 
 const PostFooter = styled.div` display: flex; align-items: center; gap: 16px; border-top: 0.5px solid var(--b1); padding-top: 16px; `;
@@ -51,11 +80,11 @@ const CommentsSection = styled(motion.div)` margin-top: 16px; padding-top: 16px;
 const CommentList = styled.div` display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; `;
 const CommentItem = styled.div` display: flex; gap: 10px; font-size: 0.8rem; `;
 const CmtAvatar = styled.div` width: 24px; height: 24px; border-radius: 6px; background: var(--b2); display: flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 700; color: white; flex-shrink: 0; `;
-const CmtBody = styled.div` background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 0 12px 12px 12px; border: 0.5px solid var(--b1); flex: 1; `;
+const CmtBody = styled.div` background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 0 12px 12px 12px; border: 0.5px solid var(--b1); flex: 1; min-width: 0; word-wrap: break-word; `;
 const CmtName = styled.div` font-weight: 700; color: var(--t2); margin-bottom: 2px; font-size: 0.7rem; `;
 const CmtInputRow = styled.div` display: flex; gap: 8px; `;
-const CmtInput = styled.input` flex: 1; background: var(--bg-input); border: 0.5px solid var(--b1); padding: 8px 14px; border-radius: 8px; color: var(--t1); font-size: 0.8rem; outline: none; &:focus { border-color: var(--violet); } `;
-const CmtSendBtn = styled.button` background: var(--violet); border: none; color: white; width: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; &:hover { background: #7c3aed; } `;
+const CmtInput = styled.input` flex: 1; min-width: 0; background: var(--bg-input); border: 0.5px solid var(--b1); padding: 8px 14px; border-radius: 8px; color: var(--t1); font-size: 0.8rem; outline: none; &:focus { border-color: var(--violet); } `;
+const CmtSendBtn = styled.button` background: var(--violet); border: none; color: white; width: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; &:hover { background: #7c3aed; } `;
 
 /* ── Radar Panel (Gaming Theme Fillers) ──────── */
 const PanelCard = styled.div` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 20px; padding: 20px; position: relative; overflow: hidden; box-shadow: var(--shadow-card); &::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(139,92,246,0.05), transparent 60%); pointer-events: none; } `;

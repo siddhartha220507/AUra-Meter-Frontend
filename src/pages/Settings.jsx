@@ -2,7 +2,7 @@ import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
 import { useState, useContext, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { User, Palette, Lock, LogOut, Save, Shield, Terminal, Moon } from 'lucide-react';
+import { User, Palette, Lock, LogOut, Save, Shield, Terminal, Moon, Headphones } from 'lucide-react';
 
 import api from '../utils/api';
 import Sidebar from '../components/layout/Sidebar';
@@ -46,12 +46,14 @@ const Settings = () => {
   const { user, setUser } = useContext(AuraContext);
   const [name, setName] = useState(user?.name || '');
   const [theme, setTheme] = useState(user?.themePreference || 'minimalist-dark');
+  const [voice, setVoice] = useState(user?.voiceGuide || 'anime');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       setName(user.name);
       setTheme(user.themePreference || 'minimalist-dark');
+      setVoice(user.voiceGuide || 'anime');
     }
   }, [user]);
 
@@ -59,14 +61,14 @@ const Settings = () => {
     const tid = toast.loading('Updating Agent Intel...');
     setLoading(true);
     try {
-      // Assuming backend has a PUT /api/users/profile route
-      const res = await api.put('/users/profile', { name, themePreference: theme });
-      setUser({ ...user, name: res.data.name, themePreference: res.data.themePreference });
+      // 🚨 API Call mein voice send kiya
+      const res = await api.put('/users/profile', { name, themePreference: theme, voiceGuide: voice });
+      
+      // 🚨 User context update kiya
+      setUser({ ...user, name: res.data.name, themePreference: res.data.themePreference, voiceGuide: res.data.voiceGuide });
       toast.success('Profile updated successfully!', { id: tid });
     } catch (err) {
-      // If endpoint doesn't exist yet, we mock the success for now
-      setUser({ ...user, name, themePreference: theme });
-      toast.success('Preferences saved locally! (Backend route pending)', { id: tid });
+      toast.error('Failed to update profile', { id: tid });
     }
     setLoading(false);
   };
@@ -140,6 +142,34 @@ const Settings = () => {
                   </ThemeCard>
                 )
               })}
+            </ThemeGrid>
+          </Section>
+
+          {/* 🚨 NAYA VOICE GUIDE SECTION */}
+          <Section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <SectionHeader>
+              <Headphones size={20} color="var(--amber)" />
+              <SectionTitle>AI Voice Persona</SectionTitle>
+            </SectionHeader>
+            <ThemeGrid>
+              <ThemeCard $active={voice === 'anime'} $color="var(--amber)" $rgb="245,158,11" onClick={() => setVoice('anime')}>
+                <ThemeInfo>
+                  <ThemeName>Anime Companion</ThemeName>
+                  <ThemeDesc>Energetic & motivating (Senpai!)</ThemeDesc>
+                </ThemeInfo>
+              </ThemeCard>
+              <ThemeCard $active={voice === 'hardcore'} $color="var(--red)" $rgb="230,57,70" onClick={() => setVoice('hardcore')}>
+                <ThemeInfo>
+                  <ThemeName>Hardcore Drill</ThemeName>
+                  <ThemeDesc>Aggressive accountability. No excuses.</ThemeDesc>
+                </ThemeInfo>
+              </ThemeCard>
+              <ThemeCard $active={voice === 'calm-mentor'} $color="var(--emerald)" $rgb="16,185,129" onClick={() => setVoice('calm-mentor')}>
+                <ThemeInfo>
+                  <ThemeName>Calm Mentor</ThemeName>
+                  <ThemeDesc>Peaceful, mindful, and focused guidance.</ThemeDesc>
+                </ThemeInfo>
+              </ThemeCard>
             </ThemeGrid>
           </Section>
 

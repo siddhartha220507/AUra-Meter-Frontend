@@ -8,28 +8,56 @@ import api from '../utils/api';
 import Sidebar from '../components/layout/Sidebar';
 import { AuraContext } from '../context/AuraContext';
 
-/* ── Animations ─────────────────────────────────────────── */
+/* ── Layout ──────────────────────────────────────────────── */
+const Shell = styled.div` background: var(--bg-void); min-height: 100vh; display: flex; `;
+
+/* 🚨 MOBILE FIX: Main Padding */
+const Main = styled.main` 
+  margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px 48px; min-width: 0; 
+  @media (max-width: 768px) {
+    margin-left: 0;
+    padding: 20px 16px 85px; /* Bottom Nav Safe Zone */
+  }
+`;
+
 const glowRotate = keyframes`
   0% { filter: drop-shadow(0 0 5px rgba(245,158,11,0.2)); }
   50% { filter: drop-shadow(0 0 20px rgba(245,158,11,0.5)); }
   100% { filter: drop-shadow(0 0 5px rgba(245,158,11,0.2)); }
 `;
 
-/* ── Layout ──────────────────────────────────────────────── */
-const Shell = styled.div` background: var(--bg-void); min-height: 100vh; display: flex; `;
-const Main = styled.main` margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px 48px; min-width: 0; `;
+/* 🚨 MOBILE FIX: Topbar Stacking */
+const Topbar = styled.div` 
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; 
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+`;
 
-const Topbar = styled.div` display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; `;
 const HeaderText = styled.div``;
 const PreTitle = styled.div` font-family: var(--f-mono); font-size: 0.62rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--amber); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; `;
 const Title = styled.h1` font-family: var(--f-brand); font-size: 1.8rem; font-weight: 700; color: var(--t1); `;
 
-const FilterRow = styled.div` display: flex; gap: 8px; background: var(--bg-card); padding: 5px; border-radius: 12px; border: 0.5px solid var(--b1); `;
-const FilterBtn = styled.button` padding: 8px 18px; border-radius: 9px; border: none; background: ${p => p.$active ? 'var(--amber-soft)' : 'transparent'}; color: ${p => p.$active ? 'var(--amber)' : 'var(--t3)'}; font-family: var(--f-ui); font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; `;
+/* 🚨 MOBILE FIX: Filter Buttons stretched to fill screen */
+const FilterRow = styled.div` 
+  display: flex; gap: 8px; background: var(--bg-card); padding: 5px; border-radius: 12px; border: 0.5px solid var(--b1); 
+  @media (max-width: 768px) { width: 100%; justify-content: space-between; }
+`;
+const FilterBtn = styled.button` 
+  padding: 8px 18px; border-radius: 9px; border: none; background: ${p => p.$active ? 'var(--amber-soft)' : 'transparent'}; color: ${p => p.$active ? 'var(--amber)' : 'var(--t3)'}; font-family: var(--f-ui); font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; 
+  @media (max-width: 768px) { flex: 1; text-align: center; } /* Dono buttons barabar jagah lenge */
+`;
 
 /* ── Table Styling ───────────────────────────────────────── */
-const BoardCard = styled.div` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 24px; padding: 24px; box-shadow: var(--shadow-card); overflow: hidden; `;
+const BoardCard = styled.div` 
+  background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 24px; padding: 24px; box-shadow: var(--shadow-card); overflow: hidden; 
+  @media (max-width: 768px) { padding: 16px; border-radius: 16px; }
+`;
 
+/* 🚨 MOBILE FIX: Padding aur gap reduced for tight fit */
 const ItemWrap = styled(motion.div)` 
   display: flex; align-items: center; padding: 14px 20px; border-radius: 16px; margin-bottom: 8px; cursor: pointer; border: 0.5px solid transparent; transition: all 0.25s var(--ease-expo);
   
@@ -40,16 +68,28 @@ const ItemWrap = styled(motion.div)`
   ${p => p.$rank === 1 && css`background: linear-gradient(90deg, rgba(245,158,11,0.08), transparent); border-color: rgba(245,158,11,0.2); animation: ${glowRotate} 3s infinite;`}
   ${p => p.$rank === 2 && css`background: linear-gradient(90deg, rgba(156,163,175,0.05), transparent); border-color: rgba(156,163,175,0.15);`}
   ${p => p.$rank === 3 && css`background: linear-gradient(90deg, rgba(180,83,9,0.05), transparent); border-color: rgba(180,83,9,0.15);`}
+
+  @media (max-width: 768px) { padding: 12px 10px; gap: 8px; border-radius: 12px; }
 `;
 
-const RankBox = styled.div` width: 45px; display: flex; align-items: center; justify-content: center; font-family: var(--f-brand); font-weight: 900; font-size: 1.1rem; color: ${p => p.$color}; `;
-const AgentInfo = styled.div` flex: 1; display: flex; align-items: center; gap: 15px; `;
-const Avatar = styled.div` width: 42px; height: 42px; border-radius: 12px; background: ${p => p.$grad}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-family: var(--f-brand); font-size: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); `;
-const Name = styled.div` font-size: 1rem; font-weight: 700; color: var(--t1); span { font-size: 0.65rem; color: var(--t4); margin-left: 8px; font-family: var(--f-mono); } `;
+const RankBox = styled.div` width: 45px; display: flex; align-items: center; justify-content: center; font-family: var(--f-brand); font-weight: 900; font-size: 1.1rem; color: ${p => p.$color}; @media (max-width: 768px) { width: 35px; font-size: 1rem; }`;
+const AgentInfo = styled.div` flex: 1; display: flex; align-items: center; gap: 15px; @media (max-width: 768px) { gap: 10px; }`;
+const Avatar = styled.div` width: 42px; height: 42px; border-radius: 12px; background: ${p => p.$grad}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-family: var(--f-brand); font-size: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); @media (max-width: 768px) { width: 36px; height: 36px; border-radius: 10px; }`;
+const Name = styled.div` 
+  font-size: 1rem; font-weight: 700; color: var(--t1); 
+  span { font-size: 0.65rem; color: var(--t4); margin-left: 8px; font-family: var(--f-mono); } 
+  @media (max-width: 768px) { font-size: 0.85rem; }
+`;
 
 /* ── Modal (User Stats) ──────────────────────────────────── */
-const Overlay = styled(motion.div)` position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; `;
-const Modal = styled(motion.div)` width: 100%; max-width: 420px; background: var(--bg-surface); border: 0.5px solid var(--b1); border-radius: 32px; padding: 40px 32px; position: relative; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5); `;
+const Overlay = styled(motion.div)` position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; `;
+
+/* 🚨 MOBILE FIX: Modal width and padding adjust */
+const Modal = styled(motion.div)` 
+  width: 100%; max-width: 420px; background: var(--bg-surface); border: 0.5px solid var(--b1); border-radius: 32px; padding: 40px 32px; position: relative; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5); 
+  @media (max-width: 768px) { max-width: 95%; padding: 32px 20px; border-radius: 24px; }
+`;
+
 const CloseBtn = styled.button` position: absolute; top: 20px; right: 20px; background: var(--bg-card-raise); border: 0.5px solid var(--b1); color: var(--t3); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; &:hover { color: var(--red); border-color: var(--red-border); } `;
 
 const ModalHero = styled.div` display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; `;

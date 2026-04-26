@@ -17,22 +17,66 @@ import AuraMeter       from './AuraMeter';
 /* ── Layout & Styled Components ──────── */
 const Shell = styled.div` background: var(--bg-void); min-height: 100vh; display: flex; `;
 const Main = styled.main` margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px 48px; min-width: 0; max-width: 100%; `;
-const Topbar = styled.div` display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; animation: fade-up 0.4s var(--ease-expo) both; `;
+
+/* 🚨 FIX: Topbar Mobile Stack */
+const Topbar = styled.div` 
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; animation: fade-up 0.4s var(--ease-expo) both; position: relative; z-index: 100; 
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+`;
+
 const GreetGroup = styled.div``;
 const GreetPre = styled.div` font-family: var(--f-mono); font-size: 0.62rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--red); margin-bottom: 3px; `;
 const GreetName = styled.h1` font-family: var(--f-brand); font-size: 1.4rem; font-weight: 700; color: var(--t1); letter-spacing: 0.5px; `;
-const TopActions = styled.div` display: flex; align-items: center; gap: 10px; `;
+
+/* 🚨 FIX: Top Actions Wrap on Mobile */
+const TopActions = styled.div` 
+  display: flex; align-items: center; gap: 10px; 
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+`;
+
+/* 🚨 FIX: Notification Panel Z-Index & Position */
+const NotifPanel = styled(motion.div)` 
+  position: absolute; top: 48px; right: 0; width: 300px; 
+  background: rgba(11,11,26,0.95); backdrop-filter: blur(12px); border: 1px solid var(--b1); border-radius: 16px; 
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 9999; padding: 16px; display: flex; flex-direction: column; gap: 8px; 
+  @media (max-width: 768px) {
+    position: fixed; 
+    top: 75px; 
+    right: 16px; 
+    left: 16px; 
+    width: auto; 
+    z-index: 10000;
+  }
+`;
+
+const NotifItem = styled.div` padding: 12px; border-radius: 10px; background: var(--bg-card); border-left: 3px solid ${p => p.$type === 'warning' ? 'var(--amber)' : p.$type === 'error' ? 'var(--red)' : 'var(--emerald)'}; font-size: 0.75rem; color: var(--t2); display: flex; flex-direction: column; gap: 4px; `;
+const NotifTime = styled.span` font-size: 0.6rem; color: var(--t4); font-family: var(--f-mono); `;
 const IconBtn = styled.button` width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 9px; color: var(--t2); cursor: pointer; position: relative; transition: all 0.2s var(--ease-expo); &:hover { border-color: var(--b2); color: var(--t1); background: var(--bg-card-raise); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.3); } `;
 const NotifDot = styled.span` position: absolute; top: 6px; right: 6px; width: 5px; height: 5px; background: var(--red); border-radius: 50%; box-shadow: 0 0 5px var(--red-glow); `;
 const AvatarBtn = styled.button` height: 36px; display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 10px; color: var(--t2); cursor: pointer; padding: 0 12px 0 6px; transition: all 0.2s var(--ease-expo); &:hover { border-color: var(--b2); color: var(--t1); background: var(--bg-card-raise); } `;
 const AvatarImg = styled.div` width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, var(--red), var(--violet)); display: flex; align-items: center; justify-content: center; font-family: var(--f-brand); font-size: 0.5rem; color: white; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.4); `;
 const AvatarName = styled.span` font-size: 0.82rem; font-weight: 600; color: var(--t1); letter-spacing: 0.2px; `;
-const StatStrip = styled.div` display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; `;
+
+/* 🚨 FIX: Stats Strip (4 columns on PC, 2 on Tablet, 1 on Mobile) */
+const StatStrip = styled.div` 
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; 
+  @media (max-width: 1024px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+`;
+
 const StatCard = styled.div` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 14px; padding: 16px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; cursor: default; animation: fade-up 0.42s var(--ease-expo) ${p => p.$delay}ms both; transition: all 0.25s var(--ease-expo); &::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: ${p => p.$accent}; opacity: 0; transition: opacity 0.25s; } &:hover { border-color: ${p => p.$borderHover}; transform: translateY(-2px); box-shadow: var(--shadow-card), ${p => p.$hoverShadow}; &::after { opacity: 1; } .stat-icon { transform: scale(1.1); } } `;
 const StatIcon = styled.div` color: ${p => p.$color}; margin-bottom: 10px; display: flex; transition: transform 0.2s var(--ease-spring); `;
 const StatVal = styled.div` font-family: var(--f-mono); font-size: 1.5rem; font-weight: 500; color: ${p => p.$color}; line-height: 1; letter-spacing: -0.5px; `;
 const StatName = styled.div` font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); margin-top: 4px; `;
 const StatDelta = styled.div` position: absolute; top: 14px; right: 14px; font-family: var(--f-mono); font-size: 0.6rem; color: var(--emerald); letter-spacing: 0.5px; `;
+
 const Grid = styled.div` display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; @media (max-width: 1200px) { grid-template-columns: 1fr 1fr; } @media (max-width: 768px) { grid-template-columns: 1fr; } `;
 const Col = styled.div` display: flex; flex-direction: column; gap: 20px; `;
 const TaskCard = styled.div` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 20px; padding: 22px; flex: 1; box-shadow: var(--shadow-card); position: relative; overflow: hidden; animation: fade-up 0.5s var(--ease-expo) 0.08s both; transition: border-color 0.3s var(--ease-expo), box-shadow 0.3s; &:hover { border-color: var(--red-border); box-shadow: var(--shadow-card), 0 0 0 1px var(--red-border); } &::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--red), transparent); opacity: 0.5; } `;
@@ -57,11 +101,13 @@ const STATS = [
 /* ── Component ───────────────────────────────────────────── */
 const Dashboard = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const { user, setUser, t } = useContext(AuraContext);
+  const { user, setUser, t, notifications, addNotification } = useContext(AuraContext);
   const { triggerVoice } = useAuraVoice();
+  const [showNotifs, setShowNotifs] = useState(false);
   const initials = user?.name ? user.name.slice(0,2).toUpperCase() : 'AG';
 
   const stats = STATS.map((s, i) => {
+    if (i === 0) return { ...s, val: `${user?.timeWalletBalance ?? 45}m` }; 
     if (i === 1) return { ...s, val: String(user?.currentStreak ?? 0) };
     if (i === 2) return { ...s, val: String(user?.auraLevel ?? 1) };
     if (i === 3) return { ...s, val: String(user?.cheatPassesAvailable ?? 0) };
@@ -164,6 +210,8 @@ const Dashboard = () => {
       
       toast.success('Objective Completed! +10 XP 🔥');
       setRefreshTrigger(prev => prev + 1);
+      addNotification('Objective Completed! +10 XP', 'success');
+      addNotification("You missed yesterday's objectives. Streak reset to 0!", 'error');
 
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update status');
@@ -191,9 +239,43 @@ const Dashboard = () => {
             <GreetName>{user?.name || 'Agent'}</GreetName>
           </GreetGroup>
           <TopActions>
-            <IconBtn onClick={() => triggerVoice('missed_task')} title="Simulate Missed Task"><Zap size={15} color="var(--amber)"/></IconBtn>
-            <IconBtn onClick={() => triggerVoice('streak_break')} title="Simulate Broken Streak"><Flame size={15} color="var(--red)"/></IconBtn>
-            <IconBtn><Bell size={15} strokeWidth={1.5}/><NotifDot/></IconBtn>
+            {/* 🚨 1. TEST SOUND BUTTON (Demo/Testing ke liye) */}
+            <IconBtn onClick={() => triggerVoice('anime')} title="Test Audio (Demo)">
+              <Zap size={15} color="var(--amber)"/>
+            </IconBtn>
+
+            {/* 🚨 2. PURE VISUAL BUTTON (Koi aawaz nahi, sirf design) */}
+            <IconBtn title="Streak: Active">
+              <Flame size={15} color="var(--red)"/>
+            </IconBtn>
+            
+            {/* 🚨 3. NOTIFICATION DROPDOWN (Z-Index fix ke sath) */}
+            <div style={{ position: 'relative', zIndex: 999 }}>
+              <IconBtn onClick={() => setShowNotifs(!showNotifs)}>
+                <Bell size={15} strokeWidth={1.5}/>
+                {notifications.length > 0 && <NotifDot/>}
+              </IconBtn>
+
+              {showNotifs && (
+                <NotifPanel initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--t1)', margin: '0 0 8px 4px' }}>System Logs</div>
+                  
+                  {notifications.length === 0 ? (
+                    <div style={{ fontSize: '0.7rem', color: 'var(--t4)', padding: '4px' }}>No recent activity.</div>
+                  ) : (
+                    <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {notifications.map(n => (
+                        <NotifItem key={n.id} $type={n.type}>
+                          <div>{n.text}</div>
+                          <NotifTime>{n.time}</NotifTime>
+                        </NotifItem>
+                      ))}
+                    </div>
+                  )}
+                </NotifPanel>
+              )}
+            </div>
+
             <AvatarBtn>
               <AvatarImg>{initials}</AvatarImg>
               <AvatarName>{user?.name?.split(' ')[0] || 'Agent'}</AvatarName>

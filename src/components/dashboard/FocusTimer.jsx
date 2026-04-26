@@ -4,6 +4,7 @@ import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { AuraContext } from '../../context/AuraContext';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useFocusMonitor } from '../../hooks/useFocusMonitor';
 
 /* ── Animations ─────────────────────────────────────────── */
 const glowPulse = keyframes`
@@ -51,6 +52,8 @@ const FocusTimer = ({ onSessionComplete }) => {
   const [sessions, setSessions] = useState(0);
   const [sessionId, setSessionId] = useState(null); 
   const ref = useRef();
+  const { interrogation, handleAnswer } = useFocusMonitor(running);
+  const { user } = useContext(AuraContext);
 
   const total = preset * 60;
 
@@ -99,14 +102,23 @@ const FocusTimer = ({ onSessionComplete }) => {
   // 🚨 FIX 1: Timer Engine (Only handles counting down safely)
   useEffect(() => {
     if (running && seconds > 0) {
+      // 1. Asli ghadi se end time calculate karo (Current time + remaining seconds)
+      const targetTime = Date.now() + (seconds * 1000);
+
       ref.current = setInterval(() => {
-        setSeconds(s => s - 1);
+        // 2. Har tick par check karo ki asli ghadi ke hisaab se kitna time bacha hai
+        const currentTime = Date.now();
+        const remaining = Math.max(0, Math.round((targetTime - currentTime) / 1000));
+        
+        setSeconds(remaining);
       }, 1000);
     } else {
       clearInterval(ref.current);
     }
+
+    // Cleanup function
     return () => clearInterval(ref.current);
-  }, [running, seconds]);
+  }, [running]);
 
   // 🚨 FIX 2: Trigger Engine (Fires when it hits 0)
   useEffect(() => {
@@ -125,56 +137,86 @@ const FocusTimer = ({ onSessionComplete }) => {
   const urgent = seconds < 60 && running;
 
   return (
-    <Card>
-      <Header>
-        <TitleGroup>
-          <Title>Deep Work Protocol</Title>
-          <Subtitle>Pomodoro — focused sessions</Subtitle>
-        </TitleGroup>
-        {sessions > 0 && (
-          <SessionBadge>
-            <Coffee size={11} />
-            {sessions}×
-          </SessionBadge>
-        )}
-      </Header>
+    <> {/* 🚨 NAYA: React Fragment Start */}
+      <Card>
+        <Header>
+          <TitleGroup>
+            <Title>Deep Work Protocol</Title>
+            <Subtitle>Pomodoro — focused sessions</Subtitle>
+          </TitleGroup>
+          {sessions > 0 && (
+            <SessionBadge>
+              <Coffee size={11} />
+              {sessions}×
+            </SessionBadge>
+          )}
+        </Header>
 
-      <RingWrap>
-        <RingSvg $running={running} width="172" height="172" viewBox="0 0 172 172">
-          <circle cx="86" cy="86" r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="7"/>
-          <circle cx="86" cy="86" r={r} fill="none" stroke="rgba(230,57,70,0.08)" strokeWidth="12" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} style={{ transition: 'stroke-dashoffset 0.9s linear' }} />
-          <circle cx="86" cy="86" r={r} fill="none" stroke={urgent ? '#ff2d3a' : 'var(--red)'} strokeWidth="5" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} style={{ transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s' }} />
-        </RingSvg>
+        <RingWrap>
+          <RingSvg $running={running} width="172" height="172" viewBox="0 0 172 172">
+            <circle cx="86" cy="86" r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="7"/>
+            <circle cx="86" cy="86" r={r} fill="none" stroke="rgba(230,57,70,0.08)" strokeWidth="12" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} style={{ transition: 'stroke-dashoffset 0.9s linear' }} />
+            <circle cx="86" cy="86" r={r} fill="none" stroke={urgent ? '#ff2d3a' : 'var(--red)'} strokeWidth="5" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} style={{ transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s' }} />
+          </RingSvg>
 
-        <TimeCenter>
-          <TimeText $urgent={urgent}>{mm}:{ss}</TimeText>
-          <TimeLabel>remaining</TimeLabel>
-          <ProgressText $running={running}>
-            {Math.round(pct * 100)}% complete
-          </ProgressText>
-        </TimeCenter>
-      </RingWrap>
+          <TimeCenter>
+            <TimeText $urgent={urgent}>{mm}:{ss}</TimeText>
+            <TimeLabel>remaining</TimeLabel>
+            <ProgressText $running={running}>
+              {Math.round(pct * 100)}% complete
+            </ProgressText>
+          </TimeCenter>
+        </RingWrap>
 
-      <Controls>
-        <PrimaryBtn onClick={toggleTimer}>
-          {running
-            ? <><Pause size={13} strokeWidth={2.5}/> PAUSE</>
-            : <><Play  size={13} strokeWidth={2.5} fill="white"/> INITIATE</>
-          }
-        </PrimaryBtn>
-        <IconBtn onClick={() => { setRunning(false); setSeconds(total); }}>
-          <RotateCcw size={15} strokeWidth={1.5} />
-        </IconBtn>
-      </Controls>
+        <Controls>
+          <PrimaryBtn onClick={toggleTimer}>
+            {running
+              ? <><Pause size={13} strokeWidth={2.5}/> PAUSE</>
+              : <><Play  size={13} strokeWidth={2.5} fill="white"/> INITIATE</>
+            }
+          </PrimaryBtn>
+          <IconBtn onClick={() => { setRunning(false); setSeconds(total); }}>
+            <RotateCcw size={15} strokeWidth={1.5} />
+          </IconBtn>
+        </Controls>
 
-      <PresetRow>
-        {PRESETS.map(p => (
-          <Preset key={p} $active={preset === p} onClick={() => changePreset(p)}>
-            {p}m
-          </Preset>
-        ))}
-      </PresetRow>
-    </Card>
+        <PresetRow>
+          {PRESETS.map(p => (
+            <Preset key={p} $active={preset === p} onClick={() => changePreset(p)}>
+              {p}m
+            </Preset>
+          ))}
+        </PresetRow>
+      </Card>
+
+      {/* 🚨 THE INTERROGATION MODAL AB SAHI JAGAH HAI */}
+      {/* 🚨 Z-INDEX FIX: 99999 kar diya aur flex-wrap laga diya buttons ke liye */}
+      {interrogation && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(6,6,14,0.95)', backdropFilter: 'blur(10px)', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+          <h3 style={{ color: 'var(--red)', fontFamily: 'var(--f-brand)', fontSize: '1.5rem', marginBottom: '10px' }}>PROTOCOL HALTED</h3>
+          <p style={{ color: 'var(--t2)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: '1.5' }}>
+            You were away for <strong>{interrogation.timeAwayMinutes} minutes</strong>. <br/> Were you researching for your task, or just chilling?
+          </p>
+          
+          {/* Flex-wrap lagaya taaki mobile par buttons ek ke neeche ek aayen agar jagah kam ho */}
+          <div style={{ display: 'flex', gap: '15px', width: '100%', maxWidth: '400px', flexWrap: 'wrap' }}>
+            <button onClick={() => handleAnswer('knowledge')} style={{ flex: '1 1 100%', padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--emerald-border)', borderRadius: '12px', color: 'var(--emerald)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+              RESEARCHING 📚
+            </button>
+            
+            <button onClick={() => handleAnswer('chill')} style={{ flex: '1 1 100%', padding: '16px', background: 'var(--red-soft)', border: '1px solid var(--red-border)', borderRadius: '12px', color: 'var(--red)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+              JUST CHILLING 🍿
+            </button>
+
+            {user?.cheatPassesAvailable > 0 && (
+                <button onClick={() => handleAnswer('chill', true)} style={{ flex: '1 1 100%', padding: '14px', background: 'var(--amber-soft)', border: '1px solid var(--amber)', borderRadius: '12px', color: 'var(--amber)', cursor: 'pointer', fontWeight: 'bold' }}>
+                  USE CHEAT PASS 🎟️
+                </button>
+            )}
+          </div>
+        </div>
+      )}
+    </> /* 🚨 React Fragment End */
   );
 };
 

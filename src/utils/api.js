@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Ek custom axios instance bana rahe hain
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Dhyan rakhna backend 5000 par hi chal raha ho
+  baseURL: 'https://aura-backend-ynuo.onrender.com/api',
 });
 
 // REQUEST INTERCEPTOR: Backend ko call karne se pehle ye check karega

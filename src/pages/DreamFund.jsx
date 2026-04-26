@@ -8,54 +8,66 @@ import api from '../utils/api';
 import Sidebar from '../components/layout/Sidebar';
 import { AuraContext } from '../context/AuraContext';
 
-/* ── Layout ──────── */
 const Shell = styled.div` background: var(--bg-void); min-height: 100vh; display: flex; `;
-const Main = styled.main` margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px 48px; min-width: 0; `;
-const HeaderGroup = styled.div` margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; `;
+const Main = styled.main` margin-left: var(--sidebar-w); flex: 1; padding: 32px 36px 48px; min-width: 0; max-width: 100%; @media (max-width: 768px) { margin-left: 0; padding: 20px 16px 48px; } `;
 const HeaderText = styled.div``;
-const PreTitle = styled.div` font-family: var(--f-mono); font-size: 0.62rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--emerald); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; `;
+const PreTitle = styled.div` font-family: var(--f-mono); font-size: 0.62rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--amber); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; `;
 const Title = styled.h1` font-family: var(--f-brand); font-size: 1.8rem; font-weight: 700; color: var(--t1); letter-spacing: 0.5px; `;
+const AddBtn = styled.button` background: var(--emerald); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-family: var(--f-brand); font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3); &:hover { background: #059669; transform: translateY(-2px); } `;
 
-const AddBtn = styled.button` background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-family: var(--f-brand); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(16,185,129,0.3); &:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); background: #059669; } `;
+/* 🚨 MOBILE FIX: Header ko stack kiya */
+const HeaderGroup = styled.div` 
+  margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; 
+  @media (max-width: 768px) {
+    flex-direction: column; align-items: flex-start; gap: 16px;
+  }
+`;
 
-/* ── Stats Strip ──────── */
-const StatGrid = styled.div` display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; `;
-const StatCard = styled.div` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; &::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at top right, ${p => p.$color} 0%, transparent 60%); opacity: 0.05; pointer-events: none; } `;
-const StatLabel = styled.div` font-family: var(--f-mono); font-size: 0.65rem; color: var(--t3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; `;
-const StatVal = styled.div` font-size: 2rem; font-weight: 700; font-family: var(--f-mono); color: ${p => p.$color || 'var(--t1)'}; `;
+/* 🚨 MOBILE FIX: 3 Stats ko 1 line mein kiya */
+const StatGrid = styled.div` 
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; 
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+`;
 
-/* ── Dream Grid ──────── */
-const DreamsContainer = styled.div` display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; `;
+/* 🚨 MOBILE FIX: Cards ki minimum width 320px se 280px ki taaki chote phone par aaye */
+const DreamsContainer = styled.div` 
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; 
+`;
 
-const DreamCard = styled(motion.div)` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 24px; padding: 24px; position: relative; overflow: hidden; box-shadow: var(--shadow-card); transition: all 0.3s; &:hover { border-color: ${p => p.$achieved ? 'var(--emerald)' : 'var(--violet)'}; transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); } &::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: ${p => p.$achieved ? 'var(--emerald)' : 'linear-gradient(90deg, var(--violet), var(--red))'}; opacity: 0.8; } `;
+/* 🚨 MOBILE FIX: Modal screen ke bahar na jaye */
+const Modal = styled(motion.div)` 
+  width: 95%; max-width: 400px; background: var(--bg-surface); border: 0.5px solid var(--b1); 
+  border-radius: 24px; padding: 32px; 
+  @media (max-width: 768px) { padding: 24px; }
+`;
 
-const CardTop = styled.div` display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; `;
-const IconBox = styled.div` width: 48px; height: 48px; border-radius: 14px; background: ${p => p.$achieved ? 'var(--emerald-soft)' : 'var(--bg-card-raise)'}; border: 1px solid ${p => p.$achieved ? 'rgba(16,185,129,0.3)' : 'var(--b2)'}; display: flex; align-items: center; justify-content: center; color: ${p => p.$achieved ? 'var(--emerald)' : 'var(--t2)'}; box-shadow: 0 4px 12px rgba(0,0,0,0.2); `;
-const DeleteBtn = styled.button` background: none; border: none; color: var(--t4); cursor: pointer; padding: 4px; border-radius: 8px; transition: all 0.2s; &:hover { color: var(--red); background: var(--red-soft); } `;
+const StatCard = styled.div` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 14px; padding: 16px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 10px; `;
+const StatLabel = styled.div` font-size: 0.7rem; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; `;
+const StatVal = styled.div` font-family: var(--f-mono); font-size: 1.6rem; font-weight: 500; color: ${p => p.$color}; `;
 
-const DreamTitle = styled.h3` font-size: 1.1rem; font-weight: 700; color: var(--t1); margin-bottom: 4px; `;
-const ProgressText = styled.div` font-family: var(--f-mono); font-size: 0.75rem; color: var(--t3); display: flex; justify-content: space-between; margin-bottom: 8px; span { color: ${p => p.$achieved ? 'var(--emerald)' : 'var(--violet)'}; font-weight: 700; } `;
+const DreamCard = styled(motion.div)` background: var(--bg-card); border: 0.5px solid var(--b1); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; transition: all 0.3s; ${p => p.$achieved && `border-color: var(--emerald); background: rgba(16,185,129,0.05);`} &:hover { border-color: var(--amber); transform: translateY(-4px); } `;
+const CardTop = styled.div` display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; `;
+const IconBox = styled.div` width: 44px; height: 44px; border-radius: 10px; background: ${p => p.$achieved ? 'var(--emerald)' : 'var(--amber)'}; display: flex; align-items: center; justify-content: center; color: white; `;
+const DeleteBtn = styled.button` background: transparent; border: none; color: var(--t3); cursor: pointer; transition: color 0.2s; &:hover { color: var(--red); } `;
 
-const ProgressBarWrap = styled.div` width: 100%; height: 10px; background: var(--bg-surface); border-radius: 10px; overflow: hidden; border: 0.5px solid var(--b1); margin-bottom: 20px; `;
-const ProgressBar = styled.div` height: 100%; width: ${p => p.$pct}%; background: ${p => p.$achieved ? 'var(--emerald)' : 'linear-gradient(90deg, var(--violet), var(--red))'}; border-radius: 10px; transition: width 0.8s var(--ease-spring); box-shadow: ${p => p.$achieved ? '0 0 10px var(--emerald-glow)' : '0 0 10px rgba(139,92,246,0.4)'}; `;
-
+const DreamTitle = styled.h3` font-size: 1rem; font-weight: 700; color: var(--t1); margin-bottom: 8px; `;
+const ProgressText = styled.div` display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--t3); margin-bottom: 8px; ${p => p.$achieved && `color: var(--emerald);`} `;
+const ProgressBarWrap = styled.div` width: 100%; height: 6px; background: var(--b1); border-radius: 3px; overflow: hidden; margin-bottom: 12px; `;
+const ProgressBar = styled.div` height: 100%; width: ${p => p.$pct}%; background: ${p => p.$achieved ? 'var(--emerald)' : 'var(--amber)'}; transition: width 0.4s; `;
+const AchievedBadge = styled.div` background: var(--emerald); color: white; padding: 10px; border-radius: 8px; text-align: center; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; `;
 const FundArea = styled.div` display: flex; gap: 8px; `;
-const FundInput = styled.input` flex: 1; background: var(--bg-input); border: 0.5px solid var(--b1); border-radius: 10px; padding: 0 14px; color: var(--t1); font-family: var(--f-mono); font-size: 0.9rem; outline: none; &:focus { border-color: var(--violet); } `;
-const FundBtn = styled.button` background: var(--bg-card-raise); border: 0.5px solid var(--b2); color: var(--t1); padding: 10px 16px; border-radius: 10px; font-family: var(--f-brand); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; &:hover:not(:disabled) { background: var(--violet); color: white; border-color: var(--violet); } &:disabled { opacity: 0.5; cursor: not-allowed; } `;
-const AchievedBadge = styled.div` width: 100%; padding: 10px; text-align: center; background: var(--emerald-soft); color: var(--emerald); border: 0.5px solid rgba(16,185,129,0.3); border-radius: 10px; font-family: var(--f-mono); font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 6px; `;
+const FundInput = styled.input` flex: 1; background: var(--bg-input); border: 0.5px solid var(--b1); border-radius: 8px; padding: 8px 12px; color: var(--t1); font-size: 0.85rem; outline: none; &:focus { border-color: var(--amber); } `;
+const FundBtn = styled.button` background: var(--amber); color: var(--bg-void); border: none; border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; &:hover:not(:disabled) { background: #d97706; } &:disabled { opacity: 0.5; cursor: not-allowed; } `;
 
-/* ── Modal (Add Goal) ──────── */
-const Overlay = styled(motion.div)` position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; `;
-const Modal = styled(motion.div)` width: 100%; max-width: 400px; background: var(--bg-surface); border: 0.5px solid var(--b1); border-radius: 24px; padding: 32px; `;
-const InputGroup = styled.div` margin-bottom: 20px; `;
-const Label = styled.label` display: block; font-size: 0.7rem; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; `;
-const Input = styled.input` width: 100%; background: var(--bg-input); border: 0.5px solid var(--b1); border-radius: 12px; padding: 12px 16px; color: var(--t1); font-size: 0.95rem; outline: none; &:focus { border-color: var(--emerald); } `;
-const IconGrid = styled.div` display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; `;
-const IconSelect = styled.button` aspect-ratio: 1; border-radius: 12px; background: ${p => p.$selected ? 'var(--emerald-soft)' : 'var(--bg-input)'}; border: 1px solid ${p => p.$selected ? 'var(--emerald)' : 'var(--b1)'}; color: ${p => p.$selected ? 'var(--emerald)' : 'var(--t3)'}; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; &:hover { background: var(--bg-card-raise); } `;
-const ModalActions = styled.div` display: flex; gap: 12px; margin-top: 32px; `;
-const ModalBtn = styled.button` flex: 1; padding: 12px; border-radius: 12px; font-family: var(--f-brand); font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; `;
-const CancelBtn = styled(ModalBtn)` background: transparent; border: 1px solid var(--b2); color: var(--t2); &:hover { background: var(--bg-card-raise); } `;
-const SaveBtn = styled(ModalBtn)` background: var(--emerald); border: none; color: white; &:hover { background: #059669; } `;
+const Overlay = styled.div` position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; `;
+const InputGroup = styled.div` display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; `;
+const Label = styled.label` font-size: 0.75rem; color: var(--t2); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; `;
+const Input = styled.input` background: var(--bg-input); border: 0.5px solid var(--b1); border-radius: 10px; padding: 12px 14px; color: var(--t1); font-size: 0.9rem; outline: none; transition: all 0.2s; &:focus { border-color: var(--emerald); box-shadow: 0 0 0 2px rgba(16,185,129,0.1); } `;
+const IconGrid = styled.div` display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; `;
+const IconSelect = styled.button` background: ${p => p.$selected ? 'var(--emerald)' : 'var(--bg-input)'}; border: 0.5px solid ${p => p.$selected ? 'var(--emerald)' : 'var(--b1)'}; color: ${p => p.$selected ? 'white' : 'var(--t2)'}; border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; &:hover { border-color: var(--emerald); } `;
+const ModalActions = styled.div` display: flex; gap: 12px; margin-top: 24px; `;
+const CancelBtn = styled.button` flex: 1; background: transparent; border: 0.5px solid var(--b1); color: var(--t2); border-radius: 10px; padding: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; &:hover { background: var(--bg-input); } `;
+const SaveBtn = styled.button` flex: 1; background: var(--emerald); border: none; color: white; border-radius: 10px; padding: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3); &:hover { background: #059669; } `;
 
 const ICONS = { Target, Rocket, Gamepad2, Plane, Laptop, Camera };
 
