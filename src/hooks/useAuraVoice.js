@@ -3,16 +3,14 @@ import { AuraContext } from '../context/AuraContext';
 import { getVoiceMessage } from '../constants/personas';
 import toast from 'react-hot-toast';
 
-// 🚨 1. DIRECT IMPORTS (Ye Vite ko force karega files dhoondhne ke liye)
-import calmSound from '../assets/sounds/calm.mp3';
-import hardcoreSound from '../assets/sounds/hardcore.mp3';
-import animeSound from '../assets/sounds/anime.mp3';
+// 🚨 1. IMPORTS HATA DIYE HAIN (Kyunki files ab public folder mein hain)
+// Vite ab inhe module ki tarah resolve karne ki koshish nahi karega.
 
-// 🚨 2. SOUND MAP UPDATE KIYA
+// 🚨 2. DIRECT URL PATHS LAGA DIYE (Best Practice for Audio in Vite)
 const SOUNDS = {
-  'calm-mentor': calmSound,
-  'hardcore': hardcoreSound,
-  'anime': animeSound
+  'calm-mentor': '/sounds/calm.mp3',
+  'hardcore': '/sounds/hardcore.mp3',
+  'anime': '/sounds/anime.mp3'
 };
 
 export const useAuraVoice = () => {
@@ -32,6 +30,7 @@ export const useAuraVoice = () => {
     try {
       const soundUrl = SOUNDS[voice];
       if (soundUrl) {
+        // Seedha URL se play hoga
         const audio = new Audio(soundUrl);
         audio.play().catch(e => console.warn("Browser blocked audio autoplay:", e));
       }
