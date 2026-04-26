@@ -1,25 +1,25 @@
 import axios from 'axios';
 
-// Ek custom axios instance bana rahe hain
+// Ek common axios instance create karo
 const api = axios.create({
-  baseURL: 'https://aura-backend-ynuo.onrender.com/api',
+  // 🚨 YAHAN APNA RENDER WALA LIVE URL DAALO
+  baseURL: 'https://aura-backend-ynuo.onrender.com/api', 
+
+  // 🚨 CORS KA MAGIC WAND: Ye line Frontend ko allow karegi cookies bhejna
+  withCredentials: true, 
+  
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
-// REQUEST INTERCEPTOR: Backend ko call karne se pehle ye check karega
-api.interceptors.request.use(
-  (config) => {
-    // LocalStorage se token uthao
-    const token = localStorage.getItem('token');
-    
-    // Agar token hai, toh use headers mein chipka do (Bearer token)
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Agar tumhare paas pehle se koi interceptors hain, toh unhe aise hi rehne do
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
 export default api;
