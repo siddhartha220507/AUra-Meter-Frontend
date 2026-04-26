@@ -1,10 +1,11 @@
 import styled, { keyframes } from 'styled-components';
-import { useState } from 'react';
+import { useState, useContext } from 'react'; // 🚨 FIX: useContext added here
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { ArrowRight, Eye, EyeOff, Zap } from 'lucide-react';
 import api from '../utils/api';
 import { useNavigate, Link } from 'react-router-dom';
+import { AuraContext } from '../context/AuraContext'; // 🚨 FIX: AuraContext added here
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const floatOrb = keyframes`
@@ -26,7 +27,6 @@ const FieldWrap = styled.div`position: relative; margin-bottom: 14px;`;
 const Input = styled.input` width: 100%; padding: 11px 38px 11px 13px; background: var(--bg-input); border: 0.5px solid var(--b1); border-radius: 10px; color: var(--t1); font-family: var(--f-ui); font-size: 0.88rem; outline: none; transition: all 0.22s var(--ease-expo); letter-spacing: 0.2px; &::placeholder { color: var(--t3); } &:focus { border-color: var(--red-border); background: rgba(9,9,15,0.95); box-shadow: 0 0 0 3px rgba(230,57,70,0.07); } `;
 const EyeBtn = styled.button` position: absolute; right: 11px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--t3); display: flex; transition: color 0.18s; &:hover { color: var(--t1); } `;
 
-/* ── Password Strength ───────────────────────────────────── */
 const StrengthRow = styled.div` display: flex; gap: 4px; margin-top: -8px; margin-bottom: 14px; `;
 const StrengthBar = styled.div` flex: 1; height: 2px; border-radius: 99px; background: ${p => { if (!p.$on) return 'var(--b1)'; if (p.$lv === 'weak') return 'var(--red)'; if (p.$lv === 'medium') return 'var(--amber)'; return 'var(--emerald)'; }}; transition: background 0.3s; `;
 const StrengthLabel = styled.div` font-family: var(--f-mono); font-size: 0.58rem; color: ${p => p.$lv === 'weak' ? 'var(--red)' : p.$lv === 'medium' ? 'var(--amber)' : p.$lv === 'strong' ? 'var(--emerald)' : 'var(--t4)' }; text-align: right; margin-top: 2px; margin-bottom: 10px; letter-spacing: 0.5px; text-transform: uppercase; `;
@@ -46,12 +46,11 @@ const Register = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useContext(AuraContext); // Context chahiye data set karne ko
+  const { setUser } = useContext(AuraContext); 
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
   const s = getStrength(form.password);
 
-  // 🔴 1. NORMAL REGISTER (Form wala)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -60,9 +59,9 @@ const Register = () => {
     try {
       const res = await api.post('/auth/register', form); 
       localStorage.setItem('token', res.data.token);
-      setUser(res.data.user); // Context update
+      setUser(res.data.user); 
       toast.success('Profile Initialized! Welcome to Aura.', { id: toastId });
-      window.location.href = '/vibe-check'; // Redirect to onboarding
+      window.location.href = '/vibe-check'; 
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed!', { id: toastId });
     } finally {
@@ -81,7 +80,6 @@ const Register = () => {
           <Title>Create Profile</Title>
           <Sub>Join the discipline protocol.</Sub>
 
-          {/* 🟢 NORMAL FORM START */}
           <form onSubmit={handleSubmit}>
             <Label>Display Name</Label>
             <FieldWrap><Input name="name" type="text" value={form.name} onChange={handleChange} placeholder="Your agent name" required/></FieldWrap>
@@ -109,16 +107,13 @@ const Register = () => {
               <ArrowRight size={13} strokeWidth={2.5}/>
             </SubmitBtn>
           </form>
-          {/* 🟢 NORMAL FORM END */}
 
-          {/* 🔴 DIVIDER CHAHIYE HOGA YAHAN */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
             <div style={{ flex: 1, height: '0.5px', background: 'var(--b1)' }}></div>
             <span style={{ fontFamily: 'var(--f-mono)', fontSize: '0.62rem', color: 'var(--t4)', letterSpacing: '1px' }}>OR</span>
             <div style={{ flex: 1, height: '0.5px', background: 'var(--b1)' }}></div>
           </div>
 
-          {/* 🔵 GOOGLE SIGNUP BUTTON */}
           <GoogleOAuthProvider clientId="TUMHARA_GOOGLE_CLIENT_ID">
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <GoogleLogin
